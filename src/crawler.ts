@@ -30,7 +30,7 @@ interface Item {
   id: string,
   title: string,
   name: string,
-  url: string,
+  url?: string,
   cost?: number,
   detail?: ItemDetail
 }
@@ -41,7 +41,8 @@ interface ItemDetail {
   active?: string,
   bonus?: any,
   disassemble?: boolean,
-  recipe?: Array<string>
+  recipeIds?: Array<string>
+  recipe?: Array<Item>
 }
 
 export class DotaItemWikiCrawler extends Crawler {
@@ -84,7 +85,6 @@ export class DotaItemWikiCrawler extends Crawler {
           const image = item.children[0] as HTMLAnchorElement;
           const title = item.children[1];
 
-          const imageSrc = (image.firstChild as HTMLImageElement).src
           const name = title.innerHTML
 
           return {
@@ -178,10 +178,10 @@ export class DotaItemWikiCrawler extends Crawler {
               break;
 
             case 'Recipe':
-              const recipes = Array.from(stat.nextElementSibling.firstElementChild.children) as Array<HTMLAnchorElement>
+              const recipes = Array.from(stat.nextElementSibling.firstElementChild.children) as Array<Element>
 
               for (const recipe of recipes) {
-                if (recipe.tagName !== 'a') {
+                if (recipe.tagName !== 'A') {
                   continue
                 }
 
@@ -191,7 +191,7 @@ export class DotaItemWikiCrawler extends Crawler {
                   continue
                 }
 
-                stats.recipe = Array.from(resources.children).map((elem: Element) => {
+                stats.recipeIds = Array.from(resources.children).map((elem: Element) => {
                   const a = elem.firstElementChild as HTMLAnchorElement;
 
                   return a.title
@@ -219,7 +219,29 @@ export class DotaItemWikiCrawler extends Crawler {
     for (const category of categories) {
       const items = this.categoryMap.get(category);
 
-      data[category] = items;
+      data[category] = items.map(item => {
+        item.url = undefined;
+        item.detail.image = undefined;
+        item.detail.recipe = item.detail.recipeIds?.map((title) => {
+          const item = this.itemMap.get(title)
+
+          if (item) {
+            return Object.assign({}, item, {
+              detail: undefined
+            })
+          } else {
+            return {
+              id: 'Recipe',
+              title: 'Recipe',
+              name: title,
+              cost: parseInt(title.replace('Recipe (', ''))
+            }
+          }
+        });
+        item.detail.recipeIds = undefined;
+
+        return item
+      })
     }
 
     return data
