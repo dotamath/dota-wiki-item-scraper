@@ -1,0 +1,33 @@
+url: https://dota2.fandom.com/wiki/Items
+
+output:
+  directory: 'output'
+  filename: 'data.json'
+  image:
+    active: true
+    directroy: 'image'
+
+target:
+  category:
+    - Consumables
+    - Attributes
+    - Equipment
+    - Miscellaneous
+    - Secret
+    - Accessories
+    - Support
+    - Magical
+    - Armor
+    - Weapons
+    - Artifacts
+    - Tier 1
+    - Tier 2
+    - Tier 3
+    - Tier 4
+    - Tier 5
+
+network:
+  period:
+    activation: 1500
+
+  timeout: 300000
