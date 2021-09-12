@@ -6,6 +6,7 @@ const INFOBOX_SELECTOR = '.infobox'
 const MAIN_IMAGE_SELECTOR = '#itemmainimage a'
 const TOTAL_COST_SELECTOR = '[style="width:50%; background-color:#DAA520;"]';
 const STATS_CONTAINER_SELECTOR = 'table[style="text-align:left;"] > tbody';
+const ABILITY_BOX_SELECTOR = '.ability-background';
 
 const IMAGE_LAZYLOAD = '[src="data:image/gif;base64,R0lGODlhAQABAIABAAAAAP///yH5BAEAAAEALAAAAAABAAEAQAICTAEAOw%3D%3D"]'
 
@@ -43,6 +44,13 @@ interface ItemDetail {
   disassemble?: boolean,
   recipeIds?: Array<string>
   recipe?: Array<Item>
+  abilities?: Array<Ability>
+}
+
+interface Ability {
+  name?: string,
+  type: string,
+  description: string
 }
 
 export class DotaItemWikiCrawler extends Crawler {
@@ -122,6 +130,7 @@ export class DotaItemWikiCrawler extends Crawler {
       const costbox = (await infobox.$$(TOTAL_COST_SELECTOR))[0];
       const statsBox = (await infobox.$$(STATS_CONTAINER_SELECTOR))[0];
       const imageBox = (await infobox.$$(MAIN_IMAGE_SELECTOR))[0];
+      const abilityBoxes = (await this.page.$$(ABILITY_BOX_SELECTOR));
 
       await this.page.waitForSelector(`${MAIN_IMAGE_SELECTOR} ${IMAGE_LAZYLOAD}`, { hidden: true });
 
@@ -206,7 +215,27 @@ export class DotaItemWikiCrawler extends Crawler {
         return stats
       })
 
+      const abilities = await Promise.all(
+        abilityBoxes.map(async (handler) => {
+          return await handler.evaluate((item) => {
+            const name = item.firstElementChild?.firstElementChild?.firstChild?.textContent;
+
+            const descriptionBox = item.querySelectorAll('.ability-head .ability-description')[0];
+
+            const type = descriptionBox?.firstElementChild?.firstElementChild?.lastElementChild?.textContent;
+            const description = descriptionBox?.lastElementChild?.textContent
+
+            return {
+              name,
+              type,
+              description
+            }
+          });
+        })
+      ).catch(e => { console.error(e); return null });
+
       item.detail = stats
+      item.detail.abilities = abilities
       item.cost = cost
 
       stats.image = image
