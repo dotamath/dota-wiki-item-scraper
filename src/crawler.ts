@@ -174,7 +174,12 @@ export class DotaItemWikiCrawler extends Crawler {
 
                 return { key, value }
               }).reduce((acc, v) => {
-                acc[v.key] = parseInt(v.value)
+                acc[v.key] = {
+                  value: parseInt(v.value),
+                  unit: v.value.indexOf('%') !== -1
+                    ? 'PERCENT'
+                    : 'CONSTANT'
+                }
 
                 return acc
               }, {})
