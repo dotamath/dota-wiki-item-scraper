@@ -158,12 +158,12 @@ export class DotaItemWikiCrawler extends Crawler {
           const content = td;
 
           switch (title) {
-            case 'Passive':
-              stats.passive = content.textContent.replace('\n', '')
-              break;
-
             case 'Active':
               stats.active = content.textContent.replace('\n', '')
+              break;
+
+            case 'Passive [?]':
+              stats.passive = content.textContent.replace('\n', '')
               break;
 
             case 'Bonus [?]':
