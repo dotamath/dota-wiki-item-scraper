@@ -170,12 +170,14 @@ export class DotaItemWikiCrawler extends Crawler {
               const rawBonuses = content.innerHTML.split('<br>').map(v => v.replace(new RegExp('<.+?>', 'g'), '')).slice(0, -1);
 
               const bonuses = rawBonuses.map(v => {
-                const [value, key] = v.split(' ');
+                const [value, ...name] = v.split(' ');
+
+                const key = name.join(' ')
 
                 return { key, value }
               }).reduce((acc, v) => {
                 acc[v.key] = {
-                  value: parseInt(v.value),
+                  value: parseFloat(v.value),
                   unit: v.value.indexOf('%') !== -1
                     ? 'PERCENT'
                     : 'CONSTANT'
