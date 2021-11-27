@@ -2,7 +2,7 @@ url: https://dota2.fandom.com/wiki/Items
 
 output:
   directory: 'output'
-  filename: 'data.json'
+  filename: 'items.json'
   image:
     active: true
     directroy: 'image'
