@@ -43,7 +43,9 @@ interface ItemDetail {
   bonus?: any,
   disassemble?: boolean,
   recipeIds?: Array<string>
+  derivationIds?: Array<string>
   recipe?: Array<Item>
+  derivation?: Array<Item>
   abilities?: Array<Ability>
 }
 
@@ -196,9 +198,25 @@ export class DotaItemWikiCrawler extends Crawler {
             case 'Recipe':
               const recipes = Array.from(stat.nextElementSibling.firstElementChild.children) as Array<Element>
 
-              for (const recipe of recipes) {
+              for (const [index, recipe] of recipes.entries()) {
                 if (recipe.tagName !== 'A') {
-                  continue
+                  if (index !== 0) {
+                    continue
+                  }
+
+                  const derivations = recipe.firstElementChild;
+
+                  if (!derivations) {
+                    continue
+                  }
+
+                  stats.derivationIds = Array.from(derivations.children).map((elem: Element) => {
+                    const a = elem.firstElementChild as HTMLAnchorElement;
+
+                    return a.title
+                  })
+
+                  continue;
                 }
 
                 const resources = recipe.nextElementSibling?.nextElementSibling?.firstElementChild
@@ -275,6 +293,14 @@ export class DotaItemWikiCrawler extends Crawler {
           }
         });
         item.detail.recipeIds = undefined;
+        item.detail.derivation = item.detail.derivationIds?.map((title) => {
+          const item = this.itemMap.get(title)
+
+          return Object.assign({}, item, {
+            detail: undefined
+          })
+        });
+        item.detail.derivationIds = undefined;
 
         return item
       })
